@@ -17,8 +17,8 @@ variable "key_name_master" {
 # キーファイル
 ## 生成場所のPATH指定をしたければ、ここを変更するとよい。
 locals {
-  public_key_file_master  = "./${var.key_name_master}.id_rsa.pub"
-  private_key_file_master = "./${var.key_name_master}.id_rsa"
+  public_key_file_master  = "../key/${var.key_name_master}.id_rsa.pub"
+  private_key_file_master = "../key/${var.key_name_master}.id_rsa"
 }
 
 /**
