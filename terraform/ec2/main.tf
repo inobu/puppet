@@ -14,6 +14,8 @@ variable "key_name" {
   #default    = "example" # キー名を固定したかったらdefault指定。指定なしならインタラクティブにキー入力して決定。
 }
 
+variable "init_sh" {}
+
 # キーファイル
 ## 生成場所のPATH指定をしたければ、ここを変更するとよい。
 locals {
@@ -88,32 +90,14 @@ resource "aws_key_pair" "key_pair" {
   public_key = "${tls_private_key.keygen.public_key_openssh}"
 }
 
-resource "aws_instance" "puppet_master" {
+resource "aws_instance" "example" {
   ami           = "ami-0f9ae750e8274075b"
   instance_type = "t3.micro"
   key_name      = "${var.key_name}"
 
-  user_data = <<EOF
-    #!/bin/bash
-    sudo timedatectl set-timezone ASIA/TOKYO
-    sudo yum -y install ntp
-    sudo ntpdate pool.ntp.org
-    sudo sh -c "echo 
-    'server 0.jp.pool.ntp.org
-    server 1.jp.pool.ntp.org
-    server 2.jp.pool.ntp.org
-    server 3.jp.pool.ntp.org' >> /etc/ntp.conf"
-    sudo systemctl restart ntpd
-    sudo systemctl enable ntpd
-    sudo rpm -ivh https://yum.puppetlabs.com/puppetlabs-release-pc1-el-7.noarch.rpm
-    sudo yum -y install puppetserver
-    sudo sed -i -e "/JAVA_ARGS/d" /etc/sysconfig/puppetserver
-    sudo sh -c "echo 'JAVA_ARGS=\"-Xms250m -Xmx250m -XX:MaxPermSize=256m\"' >>  /etc/sysconfig/puppetserver"
-    sudo systemctl start puppetserver
-    sudo systemctl enable puppetserver
-    EOF
+  user_data = file("${var.init_sh}")
 
   tags = {
-    Name = "example"
+    Name = "${var.key_name}"
   }
 }
